@@ -1,6 +1,6 @@
 🚀 *Key Features*
 
-📚 *Multiple Quiz Subjects* – Comes with 10 built-in questions each for Mathematics, Science, English, and History with interactive A, B, C choices.
+📚 *Multiple Quiz Subjects* – Comes with 10 built-in questions each for Mathematics, Science, English, 
 
 📍 *Real-time Geolocation Tracking* – Automatically captures the user's GPS coordinates (Latitude & Longitude) and generates a direct Google Maps link in the terminal.
 
