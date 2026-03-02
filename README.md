@@ -22,3 +22,7 @@ cd BEAST-TRACK
 chmod +x beast-track.sh
 pkg install php cloudflared
 ./beast-track.sh
+
+## Usage
+```bash
+./beast-track.sh
