@@ -9,15 +9,13 @@
 🇵🇭 *PH Flag-Themed UI* – Modern interface with Registration Page (Name Input) and colors inspired by the Philippine flag.
 
 🖥️ *Live Terminal Monitoring* – Logs are color-coded for easy reading:
-🟡 Yellow: Target Detected (Name & IP)
+⚪ white: Target Detected (Name & IP)
 
 ⚪ White: GPS & Device Info
 
 🔵 Blue: Clickable Maps Link
 
-🔴 Red: Camera Snapshot Status (Captured!)
-
-🔑 *Unique Verification Code* – After 10 questions, the system generates a Unique Completion Code (e.g., MTH-5421-DONE) as proof of participation.
+🟢 Green: Camera Snapshot Status (Captured!
 
 🌐 *Cloudflare Tunneling* – Automatically generates a Public URL (.(link unavailable)) using cloudflared to access the quiz from anywhere.
 
