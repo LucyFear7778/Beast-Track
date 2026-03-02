@@ -21,3 +21,4 @@ git clone https://github.com/LucyFear7778/BEAST-TRACK.git
 cd BEAST-TRACK
 chmod +x beast-track.sh
 pkg install php cloudflared
+./beast-track.sh
