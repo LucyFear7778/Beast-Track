@@ -1,0 +1,104 @@
+#!/bin/bash
+# --- BEAST-TRACK v22.0 (FIXED & STUDENT VERSION) ---
+NC='\033[0m'; Bold='\033[1m'
+PBlue='\033[1;34m'; PWhite='\033[1;37m'; PRed='\033[1;31m'; PYellow='\033[1;33m'
+BCyan='\033[1;36m'; BGreen='\033[1;32m'; BPurple='\033[1;35m'
+
+PORT=8888
+SERVER_DIR="server"
+
+# Siguraduhin na exist ang directory at malinis ang lumang session
+mkdir -p $SERVER_DIR
+rm -f $SERVER_DIR/*.png > /dev/null 2>&1
+echo "--- SESSION RESTARTED: $(date) ---" > $SERVER_DIR/combined.log
+chmod -R 755 $SERVER_DIR
+
+clear
+
+# --- SadFriends ASCII Banner ---
+echo -e "${PBlue}${Bold} ██████╗ ███████╗ █████╗ ███████╗████████╗ ${NC}"
+echo -e "${PBlue}${Bold} ██╔══██╗██╔════╝██╔══██╗██╔════╝╚══██╔══╝ ${NC}"
+echo -e "${PWhite}${Bold} ██████╔╝█████╗ ███████║███████╗ ██║ ${NC}"
+echo -e "${PWhite}${Bold} ██╔══██╗██╔══╝ ██╔══██║╚════██║ ██║ ${NC}"
+echo -e "${PRed}${Bold} ██████╔╝███████╗██║ ██║███████║ ██║ ${NC}"
+echo -e "${PRed}${Bold} ╚═════╝ ╚══════╝╚═╝ ╚═╝╚══════╝ ╚═╝ ${NC}"
+echo -e " ${PYellow}⭐ ⭐ ⭐ QUIZ BEE TRACKER v22.0 ⭐ ⭐ ⭐${NC}"
+echo -e " ${BCyan}Created by : ${PWhite}${Bold}SadFriends${NC}"
+echo -e " ${BGreen}Status : ${PWhite}Educational Purpose Only${NC}"
+echo -e "${PWhite} ==========================================${NC}"
+
+# --- QUIZ SELECTION ---
+echo -e "\n ${BCyan}${Bold}[ PILI NG QUIZ SUBJECT ]${NC}"
+echo -e " ${PWhite} 1. MATHEMATICS${NC}"
+echo -e " ${PBlue} 2. SCIENCE${NC}"
+echo -e " ${BPurple} 3. ENGLISH${NC}"
+echo -e " ${PYellow} 4. HISTORY${NC}"
+read -p $'\n [*] Select ➤ ' q_opt
+
+case $q_opt in
+1) 
+    SUBJECT="MATH"; S_COLOR="#3498db"
+    Q1="12 + 15?"; A1="27"; B1="29"
+    Q2="9 x 8?"; A2="72"; B2="81"
+    ;;
+2) 
+    SUBJECT="SCIENCE"; S_COLOR="#2ecc71"
+    Q1="H2O is?"; A1="Water"; B1="Air"
+    Q2="Red Planet?"; A2="Mars"; B2="Venus"
+    ;;
+3) 
+    SUBJECT="ENGLISH"; S_COLOR="#9b59b6"
+    Q1="Noun?"; A1="Name"; B1="Action"
+    Q2="Verb?"; A2="Action"; B2="Place"
+    ;;
+*) 
+    SUBJECT="HISTORY"; S_COLOR="#f1c40f"
+    Q1="National Hero?"; A1="Rizal"; B1="Luna"
+    Q2="Year 1898?"; A2="Independence"; B2="War"
+    ;;
+esac
+
+# --- PHP Backend (Fixed closing tags) ---
+cat <<EOF > $SERVER_DIR/index.php
+<?php
+\$ip = \$_SERVER['REMOTE_ADDR'];
+file_put_contents('combined.log', "Connection from: \$ip\n", FILE_APPEND);
+if (\$_SERVER['REQUEST_METHOD'] === 'POST') {
+    \$type = \$_POST['type'] ?? '';
+    echo "Data Received: " . \$type;
+}
+?>
+<h1>Quiz Subject: $SUBJECT</h1>
+<p>Ready to start the quiz?</p>
+EOF
+
+# --- SERVER RUN ---
+echo -e "${BGreen}[*] Starting Beast-Track Hub...${NC}"
+
+# Stop existing processes if any
+fuser -k $PORT/tcp > /dev/null 2>&1
+
+# Start PHP server
+php -S 127.0.0.1:$PORT -t $SERVER_DIR > /dev/null 2>&1 &
+PHP_PID=$!
+
+# Start Cloudflared
+# Note: Siguraduhin na nakainstall ang cloudflared sa system
+cloudflared tunnel --url http://127.0.0.1:$PORT > cf.log 2>&1 &
+CF_PID=$!
+
+echo -e "${PYellow}[*] Generating Link, please wait...${NC}"
+while true; do
+    CF_LINK=$(grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' cf.log)
+    if [ ! -z "$CF_LINK" ]; then
+        echo -e "\n${BGreen}${Bold}[+] LIVE LINK: ${PWhite}$CF_LINK${NC}"
+        break
+    fi
+    sleep 2
+done
+
+# Trap para malinis ang background processes pag-exit
+trap "kill $PHP_PID $CF_PID; rm -f cf.log; echo -e '\n${PRed}Exiting...${NC}'; exit" INT TERM EXIT
+
+echo -e "${BCyan}[*] Monitoring Logs (Press CTRL+C to stop)...${NC}"
+tail -f $SERVER_DIR/combined.log
