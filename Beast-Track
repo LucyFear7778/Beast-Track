@@ -34,7 +34,7 @@ echo  "  ${PWhite} 1. MATHEMATICS${NC}"
 echo  "  ${PBlue} 2. SCIENCE${NC}"
 echo  "  ${BPurple} 3. ENGLISH${NC}"
 echo  "  ${PYellow} 4. HISTORY${NC}"
-read -p $'\n  [*] Select ➤ ' q_opt
+read -p  [*] Select ➤ ' q_opt
 
 case $q_opt in
     1) SUBJECT="MATH"; S_COLOR="#3498db";                                                                                                           Q1="12 + 15?"; A1="27"; B1="29"; Q2="9 x 8?"; A2="72"; B2="81";
@@ -175,7 +175,7 @@ document.getElementById('nextBtn').onclick = () => {
 EOF
 
 # --- SERVER RUN ---
-echo -e "${BGreen}[*] Starting Beast-Track Hub...${NC}"
+echo  "${BGreen}[*] Starting Beast-Track Hub...${NC}"
 php -S 127.0.0.1:$PORT -t $SERVER_DIR > /dev/null 2>&1 &
 PHP_PID=$!
 cloudflared tunnel --url http://127.0.0.1:$PORT > cf.log 2>&1 &
