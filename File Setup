@@ -1,0 +1,14 @@
+# Setup Instructions
+
+```bash
+# Update system packages
+pkg update && pkg upgrade -y
+
+# Install PHP (Web Server)
+pkg install php -y
+
+# Install Cloudflared (Public Link)
+pkg install tur-repo -y && pkg install cloudflared -y
+
+# Install Psmisc (Port Management)
+pkg install psmisc -y
