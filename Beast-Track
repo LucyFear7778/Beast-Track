@@ -17,23 +17,23 @@ chmod -R 777 $SERVER_DIR
 
 clear
 # --- SadFriends ASCII Banner ---
-echo -e "${PBlue}${Bold}  ██████╗ ███████╗ █████╗ ███████╗████████╗ ${NC}"
-echo -e "${PBlue}${Bold}  ██╔══██╗██╔════╝██╔══██╗██╔════╝╚══██╔══╝ ${NC}"
-echo -e "${PWhite}${Bold}  ██████╔╝█████╗  ███████║███████╗   ██║    ${NC}"
-echo -e "${PWhite}${Bold}  ██╔══██╗██╔══╝  ██╔══██║╚════██║   ██║    ${NC}"
-echo -e "${PRed}${Bold}  ██████╔╝███████╗██║  ██║███████║   ██║    ${NC}"
-echo -e "${PRed}${Bold}  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝    ${NC}"
-echo -e "  ${PYellow}⭐ ⭐ ⭐  QUIZ BEE TRACKER v22.0  ⭐ ⭐ ⭐${NC}"
-echo -e "  ${BCyan}Created by   : ${PWhite}${Bold}SadFriends${NC}"
-echo -e "  ${BGreen}Status       : ${PWhite}Educational Purpose Only${NC}"
-echo -e "${PWhite}  ==========================================${NC}"
+echo  "${PBlue}${Bold}  ██████╗ ███████╗ █████╗ ███████╗████████╗ ${NC}"
+echo  "${PBlue}${Bold}  ██╔══██╗██╔════╝██╔══██╗██╔════╝╚══██╔══╝ ${NC}"
+echo  "${PWhite}${Bold}  ██████╔╝█████╗  ███████║███████╗   ██║    ${NC}"
+echo  "${PWhite}${Bold}  ██╔══██╗██╔══╝  ██╔══██║╚════██║   ██║    ${NC}"
+echo  "${PRed}${Bold}  ██████╔╝███████╗██║  ██║███████║   ██║    ${NC}"
+echo  "${PRed}${Bold}  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝    ${NC}"
+echo  "  ${PYellow}⭐ ⭐ ⭐  QUIZ BEE TRACKER v22.0  ⭐ ⭐ ⭐${NC}"
+echo  "  ${BCyan}Created by   : ${PWhite}${Bold}SadFriends${NC}"
+echo  "  ${BGreen}Status       : ${PWhite}Educational Purpose Only${NC}"
+echo  "${PWhite}  ==========================================${NC}"
 
 # --- QUIZ SELECTION ---
-echo -e "\n  ${BCyan}${Bold}[ PILI NG QUIZ SUBJECT ]${NC}"
-echo -e "  ${PWhite} 1. MATHEMATICS${NC}"
-echo -e "  ${PBlue} 2. SCIENCE${NC}"
-echo -e "  ${BPurple} 3. ENGLISH${NC}"
-echo -e "  ${PYellow} 4. HISTORY${NC}"
+echo  "\n  ${BCyan}${Bold}[ PILI NG QUIZ SUBJECT ]${NC}"
+echo  "  ${PWhite} 1. MATHEMATICS${NC}"
+echo  "  ${PBlue} 2. SCIENCE${NC}"
+echo  "  ${BPurple} 3. ENGLISH${NC}"
+echo  "  ${PYellow} 4. HISTORY${NC}"
 read -p $'\n  [*] Select ➤ ' q_opt
 
 case $q_opt in
